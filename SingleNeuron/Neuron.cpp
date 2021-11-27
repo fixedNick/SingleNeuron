@@ -102,7 +102,7 @@ void Neuron::recognize_letter()
 
 // Возвращает false, если нейросеть ошиблась
 // Возвращает true, если сеть поняла символ
-bool Neuron::study(bool real_result)
+void Neuron::study(bool real_result, int& restudy)
 {
 	get_axon();
 	get_weight_sum();
@@ -111,15 +111,14 @@ bool Neuron::study(bool real_result)
 	if (real_result > result_from_ai)
 	{
 		add_weight();
-		return false;
+		restudy++;
 	}
 	else if(real_result < result_from_ai)
 	{
 		decrease_weight();
-		return false;
+		restudy++;
 	}
 
-	return true;
 }
 
 // Добавляем вес правильной матрицы к весу нейрона

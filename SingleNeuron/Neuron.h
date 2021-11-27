@@ -16,11 +16,9 @@ public:
 	bool check_result();
 	bool load_weight_from_file();
 	void recognize_letter();
-	bool study(bool real_result);
+	void study(bool real_result, int& restudy);
 	void setup_input(int** p);
 	Neuron();
-
-private:
 	int axon[cols][rows];
 	int weight_sum;
 	void add_weight();

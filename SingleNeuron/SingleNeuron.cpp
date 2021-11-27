@@ -11,8 +11,54 @@ void print_menu(int& operation)
 	cout << "0. Exit" << endl;
 	cout << "1. Study Neuron" << endl;
 	cout << "2. Recognize letter" << endl;
+	cout << "3. Test all symbols to recognize" << endl;
 	cout << "Your choice: ";
 	cin >> operation;
+}
+
+void recognize_all()
+{
+	Neuron neuron = Neuron();
+	if (neuron.load_weight_from_file() == false)
+	{
+		cout << "Entered weight file doesn't exists" << endl;
+		return;
+	}
+
+	vector<string> files;
+	int good_c = 15;
+	int bad_c = 41;
+	int max = good_c + bad_c;
+
+	for (int i = 0; i < max; i++)
+	{
+		if (i < bad_c)
+			files.push_back("examples/bad/" + to_string(i) + ".txt");
+		else files.push_back("examples/good/e" + to_string(i-bad_c) + ".txt");
+	}
+
+	int counter = -1;
+	for (auto file : files) {
+		++counter;
+		cout << files[counter] << endl;
+
+		ifstream reader(file);
+		if (reader.is_open() == false)
+		{
+			cout << "File doesn't exists" << endl;
+			return;
+		}
+
+		for (int c = 0; c < Neuron::cols; c++)
+		{
+			for (int r = 0; r < Neuron::rows; r++)
+			{
+				reader >> neuron.input_matrix[c][r];
+			}
+		}
+		reader.close();
+		neuron.recognize_letter();
+	}
 }
 
 // Метод для выгрузки всех матриц из всех файлов
@@ -59,11 +105,11 @@ void study()
 	// < 40 -> Неверные варианты
 	// > 40 -> Верные варианты [40..44]
 	vector<string> files;
-	for (int i = 0; i < 45; i++)
+	for (int i = 0; i < 41 + 15; i++)
 	{
 		string filename;
-		if (i < 40) filename = "examples/bad/" + to_string(i) + ".txt";
-		else filename = "examples/good/e" + to_string(i+1-40) + ".txt";
+		if (i < 41) filename = "examples/bad/" + to_string(i) + ".txt";
+		else filename = "examples/good/e" + to_string(i-41) + ".txt"; // Если увеличиваем количество неверных вариантов, то -N, а не -40
 
 		files.push_back(filename);
 	}
@@ -71,16 +117,17 @@ void study()
 	vector<int**> all_matrix = get_letters_matrix_from_file(files);
 
 	// restudy станет false, если файлы будут распознаны верно
-	bool restudy = true;
+	int restudy = 1;
 	int iterations = 0;
-	while (restudy)
+	while (restudy != 0)
 	{
+		restudy = 0;
 		int counter = 0;
 		for (auto item : all_matrix)
 		{
 			neuron.setup_input(item);
-			if (counter < 40) restudy = !neuron.study(false); // Неверные варианты
-			else restudy = !neuron.study(true); // Верные варианты
+			if (counter < 41) neuron.study(false, restudy); // Неверные варианты
+			else neuron.study(true, restudy); // Верные варианты
 
 			counter++;
 		}
@@ -153,6 +200,8 @@ int main()
 			study();
 		else if (operation == 2)
 			recognize();
+		else if (operation == 3)
+			recognize_all();
 		else
 		{
 			cout << "Invalid operation" << endl;
